@@ -3,7 +3,7 @@
     { "type": "arxiv", "name": "arXiv" },
     { "type": "openalex", "name": "OpenAlex" },
     { "type": "crossref", "name": "Crossref" },
-    { "type": "google_scholar_serpapi", "name": "Google Scholar" }
+    { "type": "google_scholar_serper", "name": "Google Scholar (Serper)" }
   ],
   "conference_sources": {
     "enabled": true,

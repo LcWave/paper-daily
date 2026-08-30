@@ -29,6 +29,7 @@ OPENALEX_WORKS_URL = "https://api.openalex.org/works"
 CROSSREF_WORKS_URL = "https://api.crossref.org/works"
 SEMANTIC_SCHOLAR_SEARCH_URL = "https://api.semanticscholar.org/graph/v1/paper/search"
 SERPAPI_SEARCH_URL = "https://serpapi.com/search.json"
+SERPER_SCHOLAR_URL = "https://google.serper.dev/scholar"
 ARXIV_NS = {"atom": "http://www.w3.org/2005/Atom", "arxiv": "http://arxiv.org/schemas/atom"}
 DEFAULT_CONFIG = Path("config/interests.json")
 DEFAULT_OUTPUT = Path("web/data/papers.json")
@@ -392,6 +393,19 @@ def date_to_iso(value: str | int | None) -> str:
 
 def request_json(url: str, headers: dict[str, str] | None = None, timeout: float = 60) -> Any:
     req = urllib.request.Request(url, headers=headers or {"User-Agent": "paper-daily-collector/1.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def post_json(url: str, payload: dict[str, Any], headers: dict[str, str] | None = None, timeout: float = 60) -> Any:
+    request_headers = {"User-Agent": "paper-daily-collector/1.0", "Content-Type": "application/json"}
+    request_headers.update(headers or {})
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers=request_headers,
+        method="POST",
+    )
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
@@ -1246,6 +1260,61 @@ def fetch_google_scholar_serpapi(topic: Topic, max_results: int, source: SourceC
     return papers
 
 
+def fetch_google_scholar_serper(topic: Topic, max_results: int, source: SourceConfig) -> list[dict[str, Any]]:
+    api_key = os.getenv("SERPER_API_KEY")
+    if not api_key:
+        raise RuntimeError("SERPER_API_KEY is required for google_scholar_serper source")
+    payload: dict[str, Any] = {
+        "q": topic_plain_query(topic),
+        "num": min(max_results, 20),
+    }
+    gl = os.getenv("SERPER_GL", "").strip()
+    hl = os.getenv("SERPER_HL", "").strip()
+    tbs = os.getenv("SERPER_TBS", "").strip()
+    if gl:
+        payload["gl"] = gl
+    if hl:
+        payload["hl"] = hl
+    if tbs:
+        payload["tbs"] = tbs
+    data = post_json(
+        os.getenv("SERPER_SCHOLAR_URL", SERPER_SCHOLAR_URL),
+        payload,
+        headers={"X-API-KEY": api_key},
+        timeout=float(os.getenv("SERPER_TIMEOUT_SECONDS", "90")),
+    )
+    papers = []
+    for item in data.get("organic", []):
+        title = normalize_space(str(item.get("title") or ""))
+        paper_url = str(item.get("link") or "")
+        if not title or not paper_url:
+            continue
+        publication_info = normalize_space(str(item.get("publicationInfo") or ""))
+        author_text = publication_info.split(" - ", 1)[0] if publication_info else ""
+        authors = [normalize_space(author) for author in author_text.split(",") if normalize_space(author)]
+        year = item.get("year")
+        if not re.fullmatch(r"(19|20)\d{2}", str(year or "")):
+            year_match = re.search(r"\b(19|20)\d{2}\b", publication_info)
+            year = year_match.group(0) if year_match else ""
+        pdf_url = paper_url if urllib.parse.urlparse(paper_url).path.lower().endswith(".pdf") else ""
+        papers.append(
+            {
+                "id": f"google-scholar:{slugify(paper_url or title)}",
+                "source": source.name,
+                "title": title,
+                "authors": authors,
+                "summary": normalize_space(" ".join([str(item.get("snippet") or ""), publication_info])),
+                "published": date_to_iso(year),
+                "updated": dt.datetime.now(dt.timezone.utc).isoformat() if tbs else "",
+                "paper_url": paper_url,
+                "pdf_url": pdf_url,
+                "categories": ["Google Scholar", "Serper"],
+                "seed_topic": topic.id,
+            }
+        )
+    return papers
+
+
 def link_from_atom(entry: ET.Element) -> str:
     alternate = ""
     for link in entry.findall("atom:link", FEED_NAMESPACES):
@@ -1330,6 +1399,8 @@ def fetch_source_topic(source: SourceConfig, topic: Topic, max_results: int) -> 
         return fetch_semantic_scholar(topic, max_results, source)
     if source.type == "google_scholar_serpapi":
         return fetch_google_scholar_serpapi(topic, max_results, source)
+    if source.type == "google_scholar_serper":
+        return fetch_google_scholar_serper(topic, max_results, source)
     raise ValueError(f"Unsupported topic source type: {source.type}")
 
 

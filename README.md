@@ -132,6 +132,7 @@ Issue JSON 里的默认 `sources` 只需要保留 arXiv：
 - `crossref`：Crossref Works API，适合 DOI 和期刊/会议元数据。
 - `semantic_scholar`：Semantic Scholar Graph API，适合补充摘要、开放 PDF 和引用相关元数据。
 - `google_scholar_serpapi`：通过 SerpApi 的 Google Scholar API 搜索，需要 `SERPAPI_API_KEY`。
+- `google_scholar_serper`：通过 Serper 的 Scholar API 搜索，需要 `SERPER_API_KEY`。
 - `feed`：RSS/Atom，自定义期刊、实验室主页或代理服务。
 
 ### 默认会议论文源
@@ -300,7 +301,7 @@ Authorization: Bearer <CUSTOM_FEED_BEARER_TOKEN>
 
 Google Scholar 没有稳定官方公开 API，不建议直接爬网页。直接爬 Google Scholar 往往会遇到验证码、封 IP、HTML 结构变化和服务条款风险。
 
-如果确实需要 Google Scholar，有两个推荐方式：
+如果确实需要 Google Scholar，有三种推荐方式：
 
 1. 使用 SerpApi：
 
@@ -324,7 +325,33 @@ Google Scholar 没有稳定官方公开 API，不建议直接爬网页。直接�
 }
 ```
 
-2. 使用第三方或自建服务转成 RSS/Atom：
+2. 使用 Serper：
+
+在 GitHub 仓库的 `Settings -> Secrets and variables -> Actions -> Secrets` 中添加：
+
+| Secret | 值 |
+| --- | --- |
+| `SERPER_API_KEY` | 你的 Serper Key |
+
+然后在 `config/interests.json` 中添加来源：
+
+```json
+{
+  "sources": [
+    "arxiv",
+    "openalex",
+    "crossref",
+    {
+      "type": "google_scholar_serper",
+      "name": "Google Scholar (Serper)"
+    }
+  ]
+}
+```
+
+可选 Repository variables：`SERPER_GL=us`、`SERPER_HL=en`。工作流默认使用 `SERPER_TBS=qdr:w` 检索最近一周；可改成 `qdr:d`（一天）、`qdr:m`（一月）或 `qdr:y`（一年）。
+
+3. 使用第三方或自建服务转成 RSS/Atom：
 
 ```json
 {
@@ -355,6 +382,7 @@ Google Scholar 没有稳定官方公开 API，不建议直接爬网页。直接�
 | `OPENALEX_EMAIL` | `you@example.com` | 只给 OpenAlex 使用的邮箱 |
 | `SEMANTIC_SCHOLAR_API_KEY` | `...` | Semantic Scholar API Key；默认不会使用，需同时设置 `ENABLE_SEMANTIC_SCHOLAR=true` |
 | `SERPAPI_API_KEY` | `...` | 启用 `google_scholar_serpapi` 时需要 |
+| `SERPER_API_KEY` | `...` | 启用 `google_scholar_serper` 时需要 |
 | `CUSTOM_FEED_HEADERS` | `{"X-API-Key":"..."}` | 自定义 feed/API 代理需要额外 HTTP headers 时使用，建议配置为 Secret |
 | `CUSTOM_FEED_BEARER_TOKEN` | `...` | 自定义 feed/API 代理需要 Bearer Token 时使用，建议配置为 Secret |
 | `MAX_NEW_PAPERS` | `50` | 每次运行最多新增展示的论文数，避免每天论文过多 |

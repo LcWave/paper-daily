@@ -18,6 +18,7 @@ from scripts.collect_papers import (
     default_conference_years,
     enrich_conference_paper_from_arxiv,
     fetch_arxiv,
+    fetch_source_topic,
     find_conference_abstract_by_title,
     is_relevant_enough,
     has_meaningful_summary,
@@ -80,6 +81,8 @@ class RetentionTest(unittest.TestCase):
         os.environ.pop("ARXIV_QUERY_MODE", None)
         os.environ.pop("MIN_DAILY_PAPERS", None)
         os.environ.pop("DAILY_BACKFILL_DAYS", None)
+        os.environ.pop("SERPER_API_KEY", None)
+        os.environ.pop("SERPER_TBS", None)
 
     def test_arxiv_retry_wait_uses_retry_after_header(self) -> None:
         os.environ["ARXIV_RETRY_MIN_SECONDS"] = "30"
@@ -217,6 +220,52 @@ class RetentionTest(unittest.TestCase):
 
         self.assertEqual(headers["X-API-Key"], "secret")
         self.assertEqual(headers["Authorization"], "Bearer token")
+
+    def test_google_scholar_serper_source_posts_key_and_normalizes_results(self) -> None:
+        os.environ["SERPER_API_KEY"] = "test-serper-key"
+        os.environ["SERPER_TBS"] = "qdr:w"
+        topic = Topic(
+            id="time_series_anomaly_detection",
+            name="时间序列异常检测",
+            description="",
+            keywords=["time series anomaly detection", "change point detection"],
+            arxiv_categories=["cs.LG"],
+        )
+        source = SourceConfig(type="google_scholar_serper", name="Google Scholar")
+        response = mock.MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps(
+            {
+                "organic": [
+                    {
+                        "title": "A Robust Method for Time Series Anomaly Detection",
+                        "link": "https://example.org/paper.pdf",
+                        "publicationInfo": "A Author, B Author - KDD, 2025 - example.org",
+                        "snippet": "A method for detecting anomalies in multivariate sensor streams.",
+                        "year": 2025,
+                        "citedBy": 12,
+                    }
+                ]
+            }
+        ).encode("utf-8")
+
+        with mock.patch("scripts.collect_papers.urllib.request.urlopen", return_value=response) as urlopen:
+            papers = fetch_source_topic(source, topic, 10)
+
+        request = urlopen.call_args.args[0]
+        headers = {key.lower(): value for key, value in request.header_items()}
+        body = json.loads(request.data.decode("utf-8"))
+        self.assertEqual(request.full_url, "https://google.serper.dev/scholar")
+        self.assertEqual(request.get_method(), "POST")
+        self.assertEqual(headers["x-api-key"], "test-serper-key")
+        self.assertEqual(body["q"], "time series anomaly detection change point detection")
+        self.assertEqual(body["num"], 10)
+        self.assertEqual(body["tbs"], "qdr:w")
+        self.assertEqual(papers[0]["source"], "Google Scholar")
+        self.assertEqual(papers[0]["authors"], ["A Author", "B Author"])
+        self.assertEqual(papers[0]["published"], "2025-01-01T00:00:00+00:00")
+        self.assertTrue(papers[0]["updated"])
+        self.assertEqual(papers[0]["pdf_url"], "https://example.org/paper.pdf")
+        self.assertEqual(papers[0]["seed_topic"], "time_series_anomaly_detection")
 
     def test_openalex_abstract_text_reconstructs_inverted_index(self) -> None:
         abstract = openalex_abstract_text({"abstract_inverted_index": {"hello": [0], "world": [1]}})
