@@ -1,20 +1,124 @@
 {
   "sources": [
-    {
-      "type": "arxiv",
-      "name": "arXiv"
-    },
-    {
-      "type": "openalex",
-      "name": "OpenAlex"
-    },
-    {
-      "type": "crossref",
-      "name": "Crossref"
-    }
+    { "type": "arxiv", "name": "arXiv" },
+    { "type": "openalex", "name": "OpenAlex" },
+    { "type": "crossref", "name": "Crossref" },
+    { "type": "google_scholar_serpapi", "name": "Google Scholar" }
   ],
   "conference_sources": {
-    "enabled": false
+    "enabled": true,
+    "venues": [
+      {
+        "id": "cvpr",
+        "name": "CVPR",
+        "group": "computer vision",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/cvpr/cvpr{year}.bht"]
+      },
+      {
+        "id": "aaai",
+        "name": "AAAI",
+        "group": "artificial intelligence",
+        "years": [2026, 2025, 2024],
+        "dblp_toc_patterns": ["db/conf/aaai/aaai{year}.bht"]
+      },
+      {
+        "id": "iccv",
+        "name": "ICCV",
+        "group": "computer vision",
+        "years": [2025, 2023],
+        "dblp_toc_patterns": ["db/conf/iccv/iccv{year}.bht"]
+      },
+      {
+        "id": "eccv_2024",
+        "name": "ECCV 2024",
+        "group": "computer vision",
+        "years": [2024],
+        "dblp_toc_patterns": [
+          "db/conf/eccv/eccv{year}-1.bht",
+          "db/conf/eccv/eccv{year}-2.bht",
+          "db/conf/eccv/eccv{year}-3.bht",
+          "db/conf/eccv/eccv{year}-4.bht",
+          "db/conf/eccv/eccv{year}-5.bht",
+          "db/conf/eccv/eccv{year}-6.bht",
+          "db/conf/eccv/eccv{year}-7.bht",
+          "db/conf/eccv/eccv{year}-8.bht",
+          "db/conf/eccv/eccv{year}-9.bht",
+          "db/conf/eccv/eccv{year}-10.bht",
+          "db/conf/eccv/eccv{year}-11.bht",
+          "db/conf/eccv/eccv{year}-12.bht",
+          "db/conf/eccv/eccv{year}-13.bht",
+          "db/conf/eccv/eccv{year}-14.bht",
+          "db/conf/eccv/eccv{year}-15.bht",
+          "db/conf/eccv/eccv{year}-16.bht",
+          "db/conf/eccv/eccv{year}-17.bht",
+          "db/conf/eccv/eccv{year}-18.bht",
+          "db/conf/eccv/eccv{year}-19.bht",
+          "db/conf/eccv/eccv{year}-20.bht",
+          "db/conf/eccv/eccv{year}-21.bht",
+          "db/conf/eccv/eccv{year}-22.bht",
+          "db/conf/eccv/eccv{year}-23.bht",
+          "db/conf/eccv/eccv{year}-24.bht",
+          "db/conf/eccv/eccv{year}-25.bht",
+          "db/conf/eccv/eccv{year}-26.bht",
+          "db/conf/eccv/eccv{year}-27.bht",
+          "db/conf/eccv/eccv{year}-28.bht",
+          "db/conf/eccv/eccv{year}-29.bht"
+        ]
+      },
+      {
+        "id": "icml",
+        "name": "ICML",
+        "group": "machine learning",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/icml/icml{year}.bht"]
+      },
+      {
+        "id": "iclr",
+        "name": "ICLR",
+        "group": "machine learning",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/iclr/iclr{year}.bht"]
+      },
+      {
+        "id": "acm_mm",
+        "name": "ACM MM",
+        "group": "multimedia",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/mm/mm{year}.bht"]
+      },
+      {
+        "id": "kdd_2026",
+        "name": "KDD 2026",
+        "group": "data mining",
+        "years": [2026],
+        "dblp_toc_patterns": ["db/conf/kdd/kdd{year}-1.bht"]
+      },
+      {
+        "id": "kdd_2025",
+        "name": "KDD 2025",
+        "group": "data mining",
+        "years": [2025],
+        "dblp_toc_patterns": [
+          "db/conf/kdd/kdd{year}-1.bht",
+          "db/conf/kdd/kdd{year}-2.bht"
+        ]
+      },
+      {
+        "id": "kdd_2024",
+        "name": "KDD 2024",
+        "group": "data mining",
+        "years": [2024],
+        "dblp_toc_patterns": ["db/conf/kdd/kdd{year}.bht"]
+      },
+      {
+        "id": "www",
+        "name": "WWW",
+        "group": "web and information retrieval",
+        "years": [2026, 2025, 2024],
+        "dblp_toc_patterns": ["db/conf/www/www{year}.bht"]
+      }
+    ]
   },
   "topics": [
     {
@@ -22,6 +126,7 @@
       "name": "放射治疗剂量预测",
       "description": "核心方向：关注基于 CT、MRI、靶区和危及器官轮廓的三维放疗剂量分布预测，以及 IMRT、VMAT、质子治疗中的深度学习剂量预测、剂量体积直方图预测、知识驱动计划和跨机构泛化。",
       "keywords": [
+        "dose prediction",
         "radiotherapy dose prediction",
         "radiation dose prediction",
         "dose distribution prediction",
@@ -39,13 +144,7 @@
         "cross-institutional radiotherapy",
         "generalizable dose prediction"
       ],
-      "arxiv_categories": [
-        "physics.med-ph",
-        "cs.CV",
-        "cs.LG",
-        "eess.IV",
-        "cs.AI"
-      ]
+      "arxiv_categories": ["physics.med-ph", "cs.CV", "cs.LG", "eess.IV", "cs.AI"]
     },
     {
       "id": "intelligent_radiotherapy_planning",
@@ -69,19 +168,14 @@
         "radiotherapy foundation model",
         "AI radiation oncology"
       ],
-      "arxiv_categories": [
-        "physics.med-ph",
-        "cs.CV",
-        "cs.LG",
-        "eess.IV",
-        "cs.AI"
-      ]
+      "arxiv_categories": ["physics.med-ph", "cs.CV", "cs.LG", "eess.IV", "cs.AI"]
     },
     {
       "id": "medical_image_segmentation",
       "name": "医学图像分割",
       "description": "关注 CT、MRI 和多模态医学图像中的肿瘤、靶区与危及器官分割，包括三维分割、自动勾画、基础模型、弱监督、半监督、域适应以及跨中心泛化。",
       "keywords": [
+        "image segmentation",
         "medical image segmentation",
         "radiotherapy segmentation",
         "organ at risk segmentation",
@@ -99,42 +193,64 @@
         "cross-domain medical segmentation",
         "uncertainty medical image segmentation"
       ],
-      "arxiv_categories": [
-        "cs.CV",
-        "eess.IV",
-        "cs.LG",
-        "cs.AI",
-        "physics.med-ph"
-      ]
+      "arxiv_categories": ["cs.CV", "eess.IV", "cs.LG", "cs.AI", "physics.med-ph"]
     },
     {
       "id": "time_series_analysis_forecasting",
-      "name": "时间序列分析与预测",
-      "description": "关注多变量和长序列预测、时频联合建模、频域与谱方法、非平稳性、分布漂移、缺失值、概率预测和可解释分析，并跟踪 KAN、Transformer、状态空间模型等新结构。",
+      "name": "时间序列预测与建模",
+      "description": "关注多变量、长序列和概率预测，以及时频联合建模、频域与谱方法、非平稳性、分布漂移、基础模型和可解释预测，并跟踪 KAN、Transformer、状态空间模型等新结构。",
       "keywords": [
+        "time series",
         "time series forecasting",
         "long-term time series forecasting",
-        "multivariate time series",
-        "time series analysis",
-        "time-frequency representation",
+        "multivariate time series forecasting",
+        "probabilistic time series forecasting",
+        "time series foundation model",
+        "non-stationary time series",
         "frequency domain forecasting",
+        "time-frequency forecasting",
         "Kolmogorov-Arnold network forecasting",
         "spectral temporal modeling",
-        "non-stationary time series",
-        "probabilistic time series forecasting",
         "time series distribution shift",
-        "time series foundation model",
         "state space model time series",
         "transformer time series forecasting",
         "irregular time series",
-        "missing value time series"
+        "time series imputation",
+        "zero-shot time series forecasting",
+        "interpretable time series forecasting"
       ],
-      "arxiv_categories": [
-        "cs.LG",
-        "stat.ML",
-        "eess.SP",
-        "cs.AI"
-      ]
+      "arxiv_categories": ["cs.LG", "stat.ML", "eess.SP", "cs.AI"]
+    },
+    {
+      "id": "time_series_anomaly_detection",
+      "name": "时间序列异常检测与变点分析",
+      "description": "关注单变量和多变量时间序列中的点异常、上下文异常、群体异常、变点和事件检测，包括无监督、半监督、弱监督、自监督、在线检测、根因定位、工业故障诊断与医学监测。",
+      "keywords": [
+        "time series",
+        "time series anomaly detection",
+        "temporal anomaly detection",
+        "multivariate anomaly detection",
+        "change point detection",
+        "out-of-distribution time series",
+        "fault detection time series",
+        "unsupervised time series anomaly detection",
+        "self-supervised anomaly detection time series",
+        "semi-supervised time series anomaly detection",
+        "weakly supervised time series anomaly detection",
+        "online time series anomaly detection",
+        "point anomaly detection",
+        "contextual anomaly detection",
+        "collective anomaly detection",
+        "time series event detection",
+        "root cause analysis time series",
+        "industrial time series anomaly detection",
+        "medical time series anomaly detection",
+        "ECG anomaly detection",
+        "sensor anomaly detection",
+        "time series representation learning",
+        "time series classification"
+      ],
+      "arxiv_categories": ["cs.LG", "stat.ML", "eess.SP", "cs.AI"]
     }
   ]
 }
