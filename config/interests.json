@@ -175,6 +175,7 @@
       "name": "医学图像分割",
       "description": "关注 CT、MRI 和多模态医学图像中的肿瘤、靶区与危及器官分割，包括三维分割、自动勾画、基础模型、弱监督、半监督、域适应以及跨中心泛化。",
       "keywords": [
+        "medical image",
         "image segmentation",
         "medical image segmentation",
         "radiotherapy segmentation",
