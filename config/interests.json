@@ -1,128 +1,140 @@
 {
   "sources": [
-    { "type": "arxiv", "name": "arXiv" }
+    {
+      "type": "arxiv",
+      "name": "arXiv"
+    },
+    {
+      "type": "openalex",
+      "name": "OpenAlex"
+    },
+    {
+      "type": "crossref",
+      "name": "Crossref"
+    }
   ],
   "conference_sources": {
-    "enabled": true,
-    "current_year": 2026,
-    "lookback_years": 2,
-    "venues": [
-      {
-        "id": "isca",
-        "name": "ISCA",
-        "group": "computer architecture",
-        "dblp_toc_patterns": ["db/conf/isca/isca{year}.bht"]
-      },
-      {
-        "id": "micro",
-        "name": "MICRO",
-        "group": "computer architecture",
-        "dblp_toc_patterns": ["db/conf/micro/micro{year}.bht"]
-      },
-      {
-        "id": "hpca",
-        "name": "HPCA",
-        "group": "computer architecture",
-        "dblp_toc_patterns": ["db/conf/hpca/hpca{year}.bht"]
-      },
-      {
-        "id": "asplos",
-        "name": "ASPLOS",
-        "group": "computer architecture",
-        "dblp_toc_patterns": [
-          "db/conf/asplos/asplos{year}-1.bht",
-          "db/conf/asplos/asplos{year}-2.bht",
-          "db/conf/asplos/asplos{year}-3.bht",
-          "db/conf/asplos/asplos{year}-4.bht"
-        ]
-      },
-      {
-        "id": "mlsys",
-        "name": "MLSys",
-        "group": "systems for machine learning",
-        "dblp_toc_patterns": ["db/conf/mlsys/mlsys{year}.bht"]
-      },
-      {
-        "id": "eurosys",
-        "name": "EuroSys",
-        "group": "systems",
-        "dblp_toc_patterns": ["db/conf/eurosys/eurosys{year}.bht"]
-      }
-    ]
+    "enabled": false
   },
   "topics": [
     {
-      "id": "llm_low_precision_quantization",
-      "name": "大模型低精度量化",
-      "description": "关注大语言模型低比特量化、混合精度、量化感知训练、后训练量化、权重量化、激活量化、KV cache 量化以及量化对推理性能和精度的影响。",
+      "id": "radiotherapy_dose_prediction",
+      "name": "放射治疗剂量预测",
+      "description": "核心方向：关注基于 CT、MRI、靶区和危及器官轮廓的三维放疗剂量分布预测，以及 IMRT、VMAT、质子治疗中的深度学习剂量预测、剂量体积直方图预测、知识驱动计划和跨机构泛化。",
       "keywords": [
-        "large language model quantization",
-        "LLM quantization",
-        "low-bit quantization",
-        "post-training quantization",
-        "weight-only quantization",
-        "activation quantization",
-        "mixed precision",
-        "FP8",
-        "INT4",
-        "INT8",
-        "KV cache quantization"
+        "radiotherapy dose prediction",
+        "radiation dose prediction",
+        "dose distribution prediction",
+        "deep learning treatment planning",
+        "radiotherapy treatment planning",
+        "knowledge-based planning",
+        "dose volume histogram prediction",
+        "automatic treatment planning",
+        "3D dose prediction",
+        "IMRT dose prediction",
+        "VMAT dose prediction",
+        "proton therapy dose prediction",
+        "radiotherapy dose distribution",
+        "treatment plan quality prediction",
+        "cross-institutional radiotherapy",
+        "generalizable dose prediction"
       ],
-      "arxiv_categories": ["cs.CL", "cs.LG", "cs.AI", "cs.DC"]
+      "arxiv_categories": [
+        "physics.med-ph",
+        "cs.CV",
+        "cs.LG",
+        "eess.IV",
+        "cs.AI"
+      ]
     },
     {
-      "id": "tensor_compute_unit_architecture",
-      "name": "张量计算单元结构",
-      "description": "关注 GPU/NPU/TPU 张量计算单元、矩阵乘加阵列、数据流架构、片上存储层次、低精度张量核、AI 加速器微架构和算子映射。",
+      "id": "intelligent_radiotherapy_planning",
+      "name": "智能放疗计划与剂量学扩展",
+      "description": "放射剂量预测的扩展阅读：关注自动计划、逆向计划优化、快速剂量计算、在线自适应放疗、剂量累积与重建、合成 CT、配准、鲁棒性、不确定性和放疗质量保证，从相邻任务寻找可迁移的方法。",
       "keywords": [
-        "tensor processing unit",
-        "tensor core",
-        "matrix multiply unit",
-        "systolic array",
-        "AI accelerator architecture",
-        "NPU architecture",
-        "GPU tensor core",
-        "low precision tensor compute",
-        "dataflow architecture",
-        "on-chip memory hierarchy"
+        "adaptive radiotherapy",
+        "automated radiotherapy planning",
+        "inverse treatment planning",
+        "treatment plan optimization",
+        "dose calculation deep learning",
+        "dose reconstruction radiotherapy",
+        "dose accumulation radiotherapy",
+        "radiotherapy quality assurance",
+        "synthetic CT radiotherapy",
+        "deformable image registration radiotherapy",
+        "robust treatment planning",
+        "multi-objective treatment planning",
+        "uncertainty quantification radiotherapy",
+        "online adaptive radiation therapy",
+        "radiotherapy foundation model",
+        "AI radiation oncology"
       ],
-      "arxiv_categories": ["cs.AR", "cs.DC", "cs.LG", "cs.PF"]
+      "arxiv_categories": [
+        "physics.med-ph",
+        "cs.CV",
+        "cs.LG",
+        "eess.IV",
+        "cs.AI"
+      ]
     },
     {
-      "id": "llm_inference_cluster_communication",
-      "name": "大模型推理集群通信优化",
-      "description": "关注分布式大模型推理、prefill/decode 分离、张量并行、流水并行、专家并行、跨节点通信、调度、负载均衡和 serving 系统吞吐延迟优化。",
+      "id": "medical_image_segmentation",
+      "name": "医学图像分割",
+      "description": "关注 CT、MRI 和多模态医学图像中的肿瘤、靶区与危及器官分割，包括三维分割、自动勾画、基础模型、弱监督、半监督、域适应以及跨中心泛化。",
       "keywords": [
-        "LLM inference serving",
-        "distributed inference",
-        "inference cluster",
-        "tensor parallelism",
-        "pipeline parallelism",
-        "expert parallelism",
-        "all-reduce",
-        "collective communication",
-        "prefill decode disaggregation",
-        "serving scheduler"
+        "medical image segmentation",
+        "radiotherapy segmentation",
+        "organ at risk segmentation",
+        "tumor segmentation",
+        "automatic contouring radiotherapy",
+        "3D medical image segmentation",
+        "foundation model medical imaging",
+        "segment anything medical image",
+        "target volume segmentation",
+        "nnU-Net",
+        "semi-supervised medical segmentation",
+        "weakly supervised medical segmentation",
+        "domain adaptation medical segmentation",
+        "multi-modal medical image segmentation",
+        "cross-domain medical segmentation",
+        "uncertainty medical image segmentation"
       ],
-      "arxiv_categories": ["cs.DC", "cs.PF", "cs.CL", "cs.LG"]
+      "arxiv_categories": [
+        "cs.CV",
+        "eess.IV",
+        "cs.LG",
+        "cs.AI",
+        "physics.med-ph"
+      ]
     },
     {
-      "id": "kvcache_compression_storage_scheduling",
-      "name": "KV cache 压缩与存储调度",
-      "description": "关注大模型推理中的 KV cache 压缩、淘汰、分页、卸载、预取、层级存储、显存管理和长上下文推理效率优化。",
+      "id": "time_series_analysis_forecasting",
+      "name": "时间序列分析与预测",
+      "description": "关注多变量和长序列预测、时频联合建模、频域与谱方法、非平稳性、分布漂移、缺失值、概率预测和可解释分析，并跟踪 KAN、Transformer、状态空间模型等新结构。",
       "keywords": [
-        "KV cache compression",
-        "KV cache eviction",
-        "KV cache scheduling",
-        "paged attention",
-        "attention cache",
-        "long context inference",
-        "memory offloading",
-        "GPU memory management",
-        "cache prefetching",
-        "LLM serving memory"
+        "time series forecasting",
+        "long-term time series forecasting",
+        "multivariate time series",
+        "time series analysis",
+        "time-frequency representation",
+        "frequency domain forecasting",
+        "Kolmogorov-Arnold network forecasting",
+        "spectral temporal modeling",
+        "non-stationary time series",
+        "probabilistic time series forecasting",
+        "time series distribution shift",
+        "time series foundation model",
+        "state space model time series",
+        "transformer time series forecasting",
+        "irregular time series",
+        "missing value time series"
       ],
-      "arxiv_categories": ["cs.CL", "cs.LG", "cs.DC", "cs.PF"]
+      "arxiv_categories": [
+        "cs.LG",
+        "stat.ML",
+        "eess.SP",
+        "cs.AI"
+      ]
     }
   ]
 }
