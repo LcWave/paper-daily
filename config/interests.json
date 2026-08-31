@@ -9,6 +9,134 @@
     "enabled": true,
     "venues": [
       {
+        "id": "miccai_2025",
+        "name": "MICCAI 2025",
+        "group": "medical imaging and computer-assisted intervention",
+        "years": [2025],
+        "dblp_toc_patterns": [
+          "db/conf/miccai/miccai{year}-1.bht",
+          "db/conf/miccai/miccai{year}-2.bht",
+          "db/conf/miccai/miccai{year}-3.bht",
+          "db/conf/miccai/miccai{year}-4.bht",
+          "db/conf/miccai/miccai{year}-5.bht",
+          "db/conf/miccai/miccai{year}-6.bht",
+          "db/conf/miccai/miccai{year}-7.bht",
+          "db/conf/miccai/miccai{year}-8.bht",
+          "db/conf/miccai/miccai{year}-9.bht",
+          "db/conf/miccai/miccai{year}-10.bht",
+          "db/conf/miccai/miccai{year}-11.bht",
+          "db/conf/miccai/miccai{year}-12.bht",
+          "db/conf/miccai/miccai{year}-13.bht",
+          "db/conf/miccai/miccai{year}-14.bht",
+          "db/conf/miccai/miccai{year}-15.bht",
+          "db/conf/miccai/miccai{year}-16.bht"
+        ]
+      },
+      {
+        "id": "miccai_2024",
+        "name": "MICCAI 2024",
+        "group": "medical imaging and computer-assisted intervention",
+        "years": [2024],
+        "dblp_toc_patterns": [
+          "db/conf/miccai/miccai{year}-1.bht",
+          "db/conf/miccai/miccai{year}-2.bht",
+          "db/conf/miccai/miccai{year}-3.bht",
+          "db/conf/miccai/miccai{year}-4.bht",
+          "db/conf/miccai/miccai{year}-5.bht",
+          "db/conf/miccai/miccai{year}-6.bht",
+          "db/conf/miccai/miccai{year}-7.bht",
+          "db/conf/miccai/miccai{year}-8.bht",
+          "db/conf/miccai/miccai{year}-9.bht",
+          "db/conf/miccai/miccai{year}-10.bht",
+          "db/conf/miccai/miccai{year}-11.bht",
+          "db/conf/miccai/miccai{year}-12.bht"
+        ]
+      },
+      {
+        "id": "miccai_2023",
+        "name": "MICCAI 2023",
+        "group": "medical imaging and computer-assisted intervention",
+        "years": [2023],
+        "dblp_toc_patterns": [
+          "db/conf/miccai/miccai{year}-1.bht",
+          "db/conf/miccai/miccai{year}-2.bht",
+          "db/conf/miccai/miccai{year}-3.bht",
+          "db/conf/miccai/miccai{year}-4.bht",
+          "db/conf/miccai/miccai{year}-5.bht",
+          "db/conf/miccai/miccai{year}-6.bht",
+          "db/conf/miccai/miccai{year}-7.bht",
+          "db/conf/miccai/miccai{year}-8.bht",
+          "db/conf/miccai/miccai{year}-9.bht",
+          "db/conf/miccai/miccai{year}-10.bht"
+        ]
+      },
+      {
+        "id": "isbi",
+        "name": "IEEE ISBI",
+        "group": "biomedical imaging",
+        "years": [2026, 2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/isbi/isbi{year}.bht"]
+      },
+      {
+        "id": "ipmi_2025",
+        "name": "IPMI 2025",
+        "group": "information processing in medical imaging",
+        "years": [2025],
+        "dblp_toc_patterns": [
+          "db/conf/ipmi/ipmi{year}-1.bht",
+          "db/conf/ipmi/ipmi{year}-2.bht"
+        ]
+      },
+      {
+        "id": "ipmi_2023",
+        "name": "IPMI 2023",
+        "group": "information processing in medical imaging",
+        "years": [2023],
+        "dblp_toc_patterns": ["db/conf/ipmi/ipmi{year}.bht"]
+      },
+      {
+        "id": "midl",
+        "name": "MIDL",
+        "group": "medical imaging with deep learning",
+        "years": [2024, 2023],
+        "dblp_toc_patterns": ["db/conf/midl/midl{year}.bht"]
+      },
+      {
+        "id": "ml4h",
+        "name": "ML4H",
+        "group": "machine learning for health",
+        "years": [2024, 2023],
+        "dblp_toc_patterns": ["db/conf/ml4h/ml4h{year}.bht"]
+      },
+      {
+        "id": "chil",
+        "name": "CHIL",
+        "group": "health, inference, and learning",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/chil/chil{year}.bht"]
+      },
+      {
+        "id": "embc",
+        "name": "IEEE EMBC",
+        "group": "biomedical engineering",
+        "years": [2024, 2023],
+        "dblp_toc_patterns": ["db/conf/embc/embc{year}.bht"]
+      },
+      {
+        "id": "bhi",
+        "name": "IEEE BHI",
+        "group": "biomedical and health informatics",
+        "years": [2024, 2023],
+        "dblp_toc_patterns": ["db/conf/bhi/bhi{year}.bht"]
+      },
+      {
+        "id": "cinc",
+        "name": "Computing in Cardiology",
+        "group": "medical time series and physiological signals",
+        "years": [2023],
+        "dblp_toc_patterns": ["db/conf/cinc/cinc{year}.bht"]
+      },
+      {
         "id": "cvpr",
         "name": "CVPR",
         "group": "computer vision",
@@ -81,6 +209,48 @@
         "dblp_toc_patterns": ["db/conf/iclr/iclr{year}.bht"]
       },
       {
+        "id": "neurips",
+        "name": "NeurIPS",
+        "group": "machine learning",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/nips/neurips{year}.bht"]
+      },
+      {
+        "id": "aistats",
+        "name": "AISTATS",
+        "group": "machine learning and statistics",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/aistats/aistats{year}.bht"]
+      },
+      {
+        "id": "uai",
+        "name": "UAI",
+        "group": "uncertainty in artificial intelligence",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/uai/uai{year}.bht"]
+      },
+      {
+        "id": "ijcai",
+        "name": "IJCAI",
+        "group": "artificial intelligence",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/ijcai/ijcai{year}.bht"]
+      },
+      {
+        "id": "wacv",
+        "name": "WACV",
+        "group": "computer vision",
+        "years": [2026, 2025, 2024],
+        "dblp_toc_patterns": ["db/conf/wacv/wacv{year}.bht"]
+      },
+      {
+        "id": "bmvc",
+        "name": "BMVC",
+        "group": "computer vision",
+        "years": [2024, 2023],
+        "dblp_toc_patterns": ["db/conf/bmvc/bmvc{year}.bht"]
+      },
+      {
         "id": "acm_mm",
         "name": "ACM MM",
         "group": "multimedia",
@@ -117,6 +287,41 @@
         "group": "web and information retrieval",
         "years": [2026, 2025, 2024],
         "dblp_toc_patterns": ["db/conf/www/www{year}.bht"]
+      },
+      {
+        "id": "icdm",
+        "name": "IEEE ICDM",
+        "group": "data mining and anomaly detection",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/icdm/icdm{year}.bht"]
+      },
+      {
+        "id": "cikm",
+        "name": "CIKM",
+        "group": "data mining and information retrieval",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/cikm/cikm{year}.bht"]
+      },
+      {
+        "id": "sdm",
+        "name": "SIAM SDM",
+        "group": "data mining",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/sdm/sdm{year}.bht"]
+      },
+      {
+        "id": "icassp",
+        "name": "IEEE ICASSP",
+        "group": "signal processing and time series",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/icassp/icassp{year}.bht"]
+      },
+      {
+        "id": "ijcnn",
+        "name": "IJCNN",
+        "group": "neural networks and time series",
+        "years": [2025, 2024, 2023],
+        "dblp_toc_patterns": ["db/conf/ijcnn/ijcnn{year}.bht"]
       }
     ]
   },
