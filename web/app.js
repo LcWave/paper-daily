@@ -200,7 +200,11 @@ function renderPaper(paper) {
   badge.textContent = `${level} ${scoreOf(paper).toFixed(2)}`;
   badge.classList.add(level);
 
-  setText(node, ".paper-date", `发布 ${formatDate(paper.published)} · 收录 ${formatDate(collectionTime(paper))}`);
+  const conference = paper.conference;
+  const publicationLabel = conference
+    ? `${conference.name || "会议"} ${conference.year || ""} · ${conference.track === "findings" ? "Findings" : (conference.status === "accepted" ? "已录用" : "论文集收录")}`
+    : `发布 ${formatDate(paper.published)}`;
+  setText(node, ".paper-date", `${publicationLabel} · 收录 ${formatDate(collectionTime(paper))}`);
   setText(node, ".paper-source", paper.source || "paper");
   setText(node, ".paper-title", paper.title);
   setText(node, ".paper-authors", (paper.authors || []).slice(0, 8).join(", "));
@@ -413,3 +417,4 @@ async function main() {
 }
 
 main();
+

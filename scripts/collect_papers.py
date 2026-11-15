@@ -23,6 +23,18 @@ from pathlib import Path
 from typing import Any
 
 
+try:
+    from .conference_pipeline import (refresh_plan, migrate_conference_papers,
+        dedupe_conference_papers, balanced_selection, select_new_and_refresh)
+    from .conference_sources import fetch_official_conference
+    from .conference_dblp import fetch_dblp_proceedings
+except ImportError:  # direct `python scripts/collect_papers.py`
+    from conference_pipeline import (refresh_plan, migrate_conference_papers,
+        dedupe_conference_papers, balanced_selection, select_new_and_refresh)
+    from conference_sources import fetch_official_conference
+    from conference_dblp import fetch_dblp_proceedings
+
+
 ARXIV_API_URL = "https://export.arxiv.org/api/query"
 DBLP_API_URL = os.getenv("DBLP_API_URL", "http://dblp.org/search/publ/api")
 OPENALEX_WORKS_URL = "https://api.openalex.org/works"
@@ -75,6 +87,8 @@ class ConferenceSource:
     dblp_toc_patterns: list[str]
     years: list[int]
     enabled: bool = True
+    provider: str = "dblp"
+    options: dict[str, Any] = field(default_factory=dict)
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -254,6 +268,9 @@ def parse_conference_sources(config: dict[str, Any], now: dt.datetime) -> list[C
         if isinstance(patterns, str):
             patterns = [patterns]
         years = parse_years(item.get("years")) or default_years
+        if item.get("year_parity") in {"odd", "even"}:
+            parity = 1 if item["year_parity"] == "odd" else 0
+            years = [year for year in years if year % 2 == parity]
         source = ConferenceSource(
             id=str(item.get("id") or slugify(str(item.get("name", "venue")))),
             name=str(item.get("name") or item.get("id") or "Venue"),
@@ -261,8 +278,10 @@ def parse_conference_sources(config: dict[str, Any], now: dt.datetime) -> list[C
             dblp_toc_patterns=[str(pattern) for pattern in patterns if str(pattern).strip()],
             years=years,
             enabled=bool(item.get("enabled", True)),
+            provider=str(item.get("provider") or "dblp"),
+            options=dict(item.get("options") or {}),
         )
-        if source.enabled and source.dblp_toc_patterns:
+        if source.enabled and years and (source.dblp_toc_patterns or source.provider != "dblp" or source.options.get("stream")):
             sources.append(source)
     return sources
 
@@ -820,7 +839,7 @@ def enrich_conference_paper_from_candidate(
         paper["arxiv_id"] = candidate.get("id", "")
         paper["arxiv_url"] = candidate.get("paper_url", "")
     paper["source"] = f"{paper.get('source', 'DBLP')} + {source}"
-    if candidate.get("paper_url"):
+    if candidate.get("paper_url") and not (paper.get("conference") or {}).get("evidence_url"):
         paper["paper_url"] = candidate["paper_url"]
     if candidate.get("pdf_url"):
         paper["pdf_url"] = candidate["pdf_url"]
@@ -2031,11 +2050,14 @@ def collect(
     mixed_existing_payload = {} if clear_cache else load_existing_payload(output_path)
     existing_payload, migrated_conference_payload = split_conference_payload(mixed_existing_payload)
     stored_conference_payload = {} if clear_cache else load_existing_payload(conference_output_path)
-    if stored_conference_payload.get("papers"):
+    if stored_conference_payload:
         existing_conference_payload = stored_conference_payload
     else:
         existing_conference_payload = migrated_conference_payload
-    cached_conference_years_by_source = cached_conference_years(existing_conference_payload)
+    existing_conference_payload = migrate_conference_papers(existing_conference_payload)
+    conference_fetch_state = copy.deepcopy(existing_conference_payload.get("conference_fetch_state", {}))
+    valid_scopes = {f"{source.id}:{year}" for source in conference_sources for year in source.years}
+    conference_fetch_state = {key: value for key, value in conference_fetch_state.items() if key in valid_scopes}
     cutoff, collection_mode = collection_cutoff(existing_payload, now, days, incremental_since_last_run)
     all_candidates = []
     successful_fetches = 0
@@ -2100,49 +2122,45 @@ def collect(
                     break
 
     max_per_conference = int(os.getenv("MAX_PER_CONFERENCE", "1000"))
-    conference_delay_seconds = float(os.getenv("DBLP_DELAY_SECONDS", "5"))
-    for index, source in enumerate(conference_sources):
-        years_to_fetch = uncached_conference_years(source, cached_conference_years_by_source)
-        skipped_cached_conference_years += len(source.years) - len(years_to_fetch)
-        source_stats[source.name] = {
-            "type": "conference",
-            "successful_fetches": 0,
-            "failed_fetches": 0,
-            "skipped_cached_years": len(source.years) - len(years_to_fetch),
-        }
-        if not years_to_fetch:
-            print(f"Skipping DBLP conference source from cache: {source.name} {', '.join(str(year) for year in source.years)}", flush=True)
-            continue
+    plan, deferred_conference_years = refresh_plan(
+        conference_sources, topics, conference_fetch_state, now,
+        max(0, env_int("MAX_CONFERENCE_YEAR_FETCHES", 12)),
+    )
+    skipped_cached_conference_years = sum(len(s.years) for s in conference_sources) - len(plan) - deferred_conference_years
+    for source in conference_sources:
+        source_stats[source.name] = {"type": "conference", "provider": source.provider,
+                                     "successful_fetches": 0, "failed_fetches": 0, "years": {}}
+    for index, (source, year, scope, fingerprint) in enumerate(plan):
         if index:
-            time.sleep(conference_delay_seconds)
-        source_to_fetch = ConferenceSource(
-            id=source.id,
-            name=source.name,
-            group=source.group,
-            dblp_toc_patterns=source.dblp_toc_patterns,
-            years=years_to_fetch,
-            enabled=source.enabled,
-        )
-        print(f"Fetching DBLP conference papers for source: {source.name} {', '.join(str(year) for year in years_to_fetch)}", flush=True)
+            time.sleep(max(0, env_float("CONFERENCE_SOURCE_DELAY_SECONDS", 1)))
+        print(f"Fetching {source.provider} proceedings: {source.name} {year}", flush=True)
+        entry = {"signature": fingerprint, "checked_at": now.isoformat()}
         try:
-            source_papers = fetch_dblp_conference(source_to_fetch, max_per_conference)
+            if source.provider == "dblp":
+                source_papers, details = fetch_dblp_proceedings(source, year, topics, max_per_conference)
+            else:
+                source_papers, details = fetch_official_conference(source, year, topics, max_per_conference)
             all_candidates.extend(source_papers)
             successful_fetches += 1
             successful_conference_fetches += 1
             source_stats[source.name]["successful_fetches"] += 1
+            entry.update(details)
+            entry["status"] = "missing" if details.get("missing") else "success"
+            entry["paper_count"] = len(source_papers)
+            print(f"Conference result: {source.name} {year}: {len(source_papers)} candidates; {details}", flush=True)
         except Exception as exc:
             failed_fetches += 1
             failed_conference_fetches += 1
             source_stats[source.name]["failed_fetches"] += 1
-            source_stats[source.name]["last_error"] = str(exc)
-            print(f"Warning: DBLP request failed for {source.name}: {exc}", file=sys.stderr)
+            entry.update(status="error", last_error=str(exc))
+            print(f"Warning: conference request failed for {source.name} {year}: {exc}", file=sys.stderr)
+        conference_fetch_state[scope] = entry
+        source_stats[source.name]["years"][str(year)] = entry
 
     for cached_paper in existing_conference_payload.get("papers", []) if isinstance(existing_conference_payload, dict) else []:
         if not isinstance(cached_paper, dict) or cached_paper.get("source_type") != "conference":
             continue
         if not should_retain_conference_paper(cached_paper, active_conference_years_by_source):
-            continue
-        if has_meaningful_summary(cached_paper):
             continue
         all_candidates.append(copy.deepcopy(cached_paper))
         cached_conference_candidate_count += 1
@@ -2213,8 +2231,9 @@ def collect(
     conference_candidate_paper_count = len(conference_recent_papers)
     if max_new_papers > 0:
         daily_recent_papers = daily_recent_papers[:max_new_papers]
-    if max_new_conference_papers > 0:
-        conference_recent_papers = conference_recent_papers[:max_new_conference_papers]
+    conference_recent_papers = select_new_and_refresh(
+        conference_recent_papers, existing_conference_payload, max_new_conference_papers
+    )
     conference_enrichment_stats = enrich_conference_papers_from_arxiv(conference_recent_papers)
     if conference_enrichment_stats["conference_arxiv_enrichment_succeeded"]:
         for paper in conference_recent_papers:
@@ -2230,8 +2249,10 @@ def collect(
     )
     summaries_by_id: dict[str, tuple[dict[str, str], dict[str, Any]]] = {}
     llm_jobs = []
-    for paper in recent_papers[:max_summaries]:
-        if not should_summarize_paper_with_llm(paper):
+    for paper in recent_papers:
+        if len(llm_jobs) >= max_summaries:
+            break
+        if paper.get("summary_reused") or not should_summarize_paper_with_llm(paper):
             continue
         best_topic = next(topic for topic in topics if topic.id == paper["best_match"]["topic_id"])
         llm_jobs.append((best_topic, paper))
@@ -2252,12 +2273,12 @@ def collect(
 
     for index, paper in enumerate(recent_papers):
         paper_id = str(paper.get("id", ""))
-        if index < max_summaries and paper_id in summaries_by_id:
+        if paper_id in summaries_by_id:
             summary, adjusted_match = summaries_by_id[paper_id]
             paper["chinese_summary"] = summary
             paper["best_match"] = adjusted_match
             paper["matches"] = [adjusted_match if m["topic_id"] == adjusted_match["topic_id"] else m for m in paper["matches"]]
-        else:
+        elif not paper.get("chinese_summary"):
             paper["chinese_summary"] = fallback_summary(paper, paper["best_match"])
 
     daily_recent_papers = [paper for paper in recent_papers if paper.get("source_type") != "conference"]
@@ -2273,6 +2294,7 @@ def collect(
         active_conference_years_by_source,
     )
     daily_merged_papers.sort(key=lambda p: (p["best_match"]["score"], paper_activity_datetime(p)), reverse=True)
+    conference_merged_papers = dedupe_conference_papers(conference_merged_papers)
     conference_merged_papers.sort(key=lambda p: (p["best_match"]["score"], paper_activity_datetime(p)), reverse=True)
 
     base_stats = {
@@ -2303,6 +2325,7 @@ def collect(
         "successful_conference_fetches": successful_conference_fetches,
         "failed_conference_fetches": failed_conference_fetches,
         "skipped_cached_conference_years": skipped_cached_conference_years,
+        "deferred_conference_years": deferred_conference_years,
         "conference_source_count": len(conference_sources),
         "cached_conference_candidate_count": cached_conference_candidate_count,
         "clear_cache": clear_cache,
@@ -2336,6 +2359,7 @@ def collect(
         "generated_at_iso": now.isoformat(),
         "config_source": "issue" if config is not default_config else "file",
         "data_kind": "conference",
+        "conference_fetch_state": conference_fetch_state,
         "topics": [topic.__dict__ for topic in topics],
         "papers": conference_merged_papers,
         "stats": {
@@ -2345,6 +2369,8 @@ def collect(
             **conference_retention_stats,
         },
     }
+    # Give every retained research area a share before the byte-level safety cap.
+    conference_payload["papers"] = balanced_selection(conference_payload["papers"], max_stored_conference_papers)
     conference_trimmed_papers, conference_storage_stats = trim_papers_for_storage(
         conference_payload,
         max_stored_conference_papers,
@@ -2416,3 +2442,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

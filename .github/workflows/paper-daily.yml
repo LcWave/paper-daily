@@ -47,6 +47,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Test collector
+        run: python -m unittest discover -s tests -v
+
       - name: Restore paper data cache
         uses: actions/cache/restore@v4
         with:
@@ -86,6 +89,8 @@ jobs:
           DBLP_DELAY_SECONDS: ${{ vars.DBLP_DELAY_SECONDS || '5' }}
           DBLP_PATTERN_DELAY_SECONDS: ${{ vars.DBLP_PATTERN_DELAY_SECONDS || '3' }}
           DBLP_RETRIES: ${{ vars.DBLP_RETRIES || '3' }}
+          MAX_CONFERENCE_YEAR_FETCHES: ${{ vars.MAX_CONFERENCE_YEAR_FETCHES || '12' }}
+          CONFERENCE_SOURCE_DELAY_SECONDS: ${{ vars.CONFERENCE_SOURCE_DELAY_SECONDS || '1' }}
           MAX_PER_CONFERENCE: ${{ vars.MAX_PER_CONFERENCE || '1000' }}
           ARXIV_QUERY_MODE: ${{ vars.ARXIV_QUERY_MODE || 'keyword' }}
           ARXIV_SORT_BY: ${{ vars.ARXIV_SORT_BY || 'lastUpdatedDate' }}
@@ -145,3 +150,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+

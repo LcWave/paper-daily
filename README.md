@@ -123,45 +123,32 @@ GitHub Actions 运行后不会再把 `web/data/*.json` commit 回 `main` 分支�
 
 ### 配置论文来源
 
-默认只启用 arXiv 和你关心的会议源：
-
-- `arxiv`：arXiv API，适合预印本。
-- DBLP 会议题录：ISCA、MICRO、HPCA、ASPLOS、MLSys、EuroSys。
-
-Issue JSON 里的默认 `sources` 只需要保留 arXiv：
-
-```json
-{
-  "sources": [
-    { "type": "arxiv", "name": "arXiv" }
-  ],
-  "topics": []
-}
-```
-
-如果以后要扩展普通论文来源，可以按需追加这些可选来源：
-
-- `openalex`：OpenAlex Works API，覆盖论文、会议、期刊和机构元数据。
-- `crossref`：Crossref Works API，适合 DOI 和期刊/会议元数据。
-- `semantic_scholar`：Semantic Scholar Graph API，适合补充摘要、开放 PDF 和引用相关元数据。
-- `google_scholar_serpapi`：通过 SerpApi 的 Google Scholar API 搜索，需要 `SERPAPI_API_KEY`。
-- `google_scholar_serper`：通过 Serper 的 Scholar API 搜索，需要 `SERPER_API_KEY`。
-- `feed`：RSS/Atom，自定义期刊、实验室主页或代理服务。
+默认启用 arXiv、OpenAlex、Crossref 和 Google Scholar (Serper) 日报检索。Serper 仅在已有密钥时使用；本次顶会升级不需要新密钥，也不会新增付费服务。会议论文使用下述独立的公开来源。
 
 ### 默认会议论文源
 
-仓库默认还会从 DBLP 拉取体系结构和机器学习系统方向的会议题录，不需要登录 ACM、IEEE 或 USENIX：
+默认配置 34 种重点会议，覆盖原有医学影像、放疗、时序、异常检测及新增大模型专题。并非每个会议都属于同一级别，也不保证每个来源每天都能访问。
 
-- 体系结构：ISCA、MICRO、HPCA、ASPLOS
-- 机器学习系统和系统：MLSys、EuroSys
+| 领域 | 会议 | 数据来源 |
+| --- | --- | --- |
+| 大模型 / NLP | ACL、EMNLP、NAACL、EACL | ACL Anthology 官方论文集，主会与 Findings 明确区分 |
+| 通用机器学习 | ICLR、NeurIPS；ICML、AISTATS、UAI | OpenReview 精确录用 venueid；PMLR 官方论文集 |
+| 视觉 | CVPR、ICCV、WACV；ECCV、BMVC、ACM MM | CVF 官方论文集；DBLP 出版题录 |
+| 医学影像 / 健康 | MICCAI、ISBI、IPMI、MIDL、CHIL、ML4H、EMBC、BHI、Computing in Cardiology | PMLR（MIDL/CHIL/ML4H）及 DBLP |
+| 时序 / 异常 / 数据挖掘 | KDD、ICDM、CIKM、SDM、WWW、SIGIR、ICASSP、IJCNN，以及上述 ML 会议 | DBLP 及官方 ML 论文集 |
+| 综合 AI | AAAI、IJCAI | DBLP |
 
-默认只抓本年和去年两个会议年。会议论文通常一年更新一次，DBLP 录入也可能比官网发布时间晚一些，所以默认会覆盖最近两届。
+年份自动滚动为本年及前两年；ICCV、IPMI 仅奇数年，ECCV 仅偶数年。未上线的年份记为待发布，不伪造内容。首次分批补库优先上一完整年份，然后补当前年及更早年份。原先拆开的 `miccai_2025` 等缓存标识会迁移到统一会议名。
 
-如果当前缓存里已经有某个会议某一年的论文，后续运行会直接复用缓存，不会重复请求这一年的 DBLP 题录；超过当前年份窗口的旧会议缓存会被清理。
+**证据规则：** 只有官方论文集成员、OpenReview 中与会名年份严格一致的录用 `venueid`，或明确主会出版题录，才进入“顶会精品”。投稿、拒稿、撤稿、Workshop/Companion 不按主会收录。ACL Findings 单独标记，不冒充主会。arXiv 只能补摘要，不能作为录用证明；页面保留来源证据链接，会议只展示年份，不将占位的 1 月 1 日当真实发布日期。
 
-会议源会先从 DBLP 获取题录、作者、DBLP 链接以及可用的 DOI/出版社链接。对筛选后的会议论文，系统会再按标题依次查询 arXiv、OpenAlex 和 Crossref；如果标题能可靠匹配且来源提供摘要，就回填摘要、PDF 链接和分类，再进入中文分析流程。没有找到摘要的会议论文不会默认让模型凭标题猜创新点。Semantic Scholar 默认不再参与自动搜索，避免频繁 429；如确实需要，可显式开启。
+**刷新与成本：** 每次最多抓取 12 个“会议 × 年份”，每个最多 8 个公开 HTTP 请求。其余会在后续每日运行继续；这是分批精选库，不是一次穷尽全部论文。扫描状态独立于最终精选论文保存，不再因为已有一篇论文就永久跳过该年。修改研究方向或来源会使扫描缓存失效；本年/未发布结果 7 天重查，旧年份 30 天重查，错误 1 天后重试。HTTP 202 验证页、异常 HTML、接口错误明确记为失败，并保留有效缓存。`conference_fetch_state`、`source_stats` 和 `deferred_conference_years` 可检查覆盖、排队、截断与错误。
 
-网页里“每日新论文”读取 `web/data/papers.json`，主要服务 arXiv 每日更新；“顶会精品”读取 `web/data/conference_papers.json`，专门保存 ISCA、MICRO、HPCA、ASPLOS、MLSys、EuroSys 这类高质量会议论文。两个文件独立裁剪，顶会论文不会占用每日论文的 50 篇额度。
+ACL 和 OpenReview 可直接匹配摘要。PMLR、CVF、DBLP 先按标题粗筛，PMLR/CVF 每轮只补少量官方摘要，因此可能漏掉标题没有研究关键词的论文；API 分页达到预算时会标记 `truncated`。DBLP 和 OpenReview 可能受访问限制，配置了某会议不等于当次成功抓到。对筛选后仍缺摘要的论文，保留现有按标题查询 arXiv、OpenAlex、Crossref 的有界回填流程，没有摘要不会让模型猜创新点。
+
+每日集合与顶会集合独立保存。顶会每轮最多新增 50 篇、最多保留 300 篇，并按研究专题轮转分配名额，避免某个大领域挤掉其他领域；同标题同年份的官方/DBLP记录去重。已有中文摘要复用，全局 `MAX_SUMMARIES` 默认仍为 20，不扩大模型调用额度。
+
+来源文档：[ACL Anthology](https://aclanthology.org/info/development/)、[OpenReview 录用论文检索](https://docs.openreview.net/how-to-guides/data-retrieval-and-modification/how-to-get-all-notes-for-submissions-reviews-rebuttals-etc)、[PMLR](https://proceedings.mlr.press/)、[CVF](https://openaccess.thecvf.com/)、[DBLP API](https://dblp.org/faq/How%2Bto%2Buse%2Bthe%2Bdblp%2Bsearch%2BAPI.html)。
 
 如果你想在 Issue 里继续追加自己的会议，可以在 JSON 里加 `conference_sources.additional_venues`，默认会议不会被覆盖：
 
@@ -410,10 +397,10 @@ Google Scholar 没有稳定官方公开 API，不建议直接爬网页。直接�
 | `LLM_SUMMARIZE_CONFERENCE` | `true` | 是否对已有摘要的会议论文调用模型；缺摘要的 DBLP 题录仍不会默认调用 |
 | `LLM_SUMMARIZE_TITLE_ONLY` | `false` | 是否对缺少摘要的论文调用模型；默认关闭，避免标题猜测 |
 | `SOURCE_DELAY_SECONDS` | `3` | 非 arXiv 来源的 topic 请求间隔 |
-| `DBLP_DELAY_SECONDS` | `5` | 不同 DBLP 会议源之间的请求间隔 |
-| `DBLP_PATTERN_DELAY_SECONDS` | `3` | 同一会议不同 DBLP TOC pattern 之间的请求间隔 |
-| `DBLP_RETRIES` | `3` | DBLP 临时错误的最大尝试次数 |
-| `MAX_PER_CONFERENCE` | `1000` | 每个 DBLP TOC 最多读取的题录数 |
+| `DBLP_PATTERN_DELAY_SECONDS` | `3` | DBLP 分页请求之间的间隔 |
+| `MAX_PER_CONFERENCE` | `1000` | 每会议年份最多返回的方向候选数，抓取另受 8 请求上限约束 |
+| `MAX_CONFERENCE_YEAR_FETCHES` | `12` | 每次最多刷新多少个会议年份，其余分批处理 |
+| `CONFERENCE_SOURCE_DELAY_SECONDS` | `1` | 会议年份请求组之间的间隔 |
 | `ARXIV_QUERY_MODE` | `keyword` | `keyword` 默认只按关键词抓取，避免分类宽搜淹没相关论文；`broad` 用关键词或分类的单次宽查询；`strict` 使用关键词和分类同时匹配 |
 | `ARXIV_SORT_BY` | `lastUpdatedDate` | arXiv 排序字段，默认按最近更新，能捕获当天修订的论文 |
 | `ARXIV_EXPAND_CATEGORY_SEARCH` | `false` | 是否在主查询之外再按相关分类追加一次查询；默认关闭以降低 arXiv 429 风险 |
@@ -522,3 +509,14 @@ python -m http.server 8000 --directory web
 ```text
 http://localhost:8000
 ```
+
+
+## 开发验证
+
+```sh
+python -m unittest discover -s tests -v
+python -m compileall -q scripts tests
+node --check web/app.js
+```
+
+测试覆盖录用证据、年份/Workshop/Findings隔离、异常响应、分页预算、缓存失效与保留、领域均衡。测试通过不代表所有外部源实时可用；部署后还应查看 Actions 日志与网页 `data/conference_papers.json` 的来源状态和实际论文。
