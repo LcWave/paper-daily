@@ -457,6 +457,114 @@
         "time series classification"
       ],
       "arxiv_categories": ["cs.LG", "stat.ML", "eess.SP", "cs.AI"]
+    },
+    {
+      "id": "llm_efficient_finetuning",
+      "name": "大模型高效微调与低资源适配",
+      "description": "关注大语言模型的参数高效微调、低资源适配、指令微调和低秩更新，比较训练效率与泛化能力；不泛收应用型 RAG 或 Agent 工作。",
+      "keywords": [
+        "parameter-efficient fine-tuning",
+        "low-rank adaptation",
+        "LoRA",
+        "low-resource fine-tuning",
+        "instruction tuning",
+        "efficient fine-tuning",
+        "adapter tuning",
+        "low-resource adaptation"
+      ],
+      "arxiv_categories": [
+        "cs.CL",
+        "cs.LG",
+        "cs.AI"
+      ],
+      "required_keywords": [
+        "large language model",
+        "language model",
+        "LLM",
+        "LLMs",
+        "foundation model"
+      ]
+    },
+    {
+      "id": "llm_retention_gradient_geometry",
+      "name": "大模型能力保持、遗忘与梯度几何",
+      "description": "关注大语言模型微调后的原有能力保持、灾难性遗忘、性能退化及梯度冲突、对齐和子空间约束，研究适配收益与能力损失的权衡。",
+      "keywords": [
+        "catastrophic forgetting",
+        "capability retention",
+        "fine-tuning degradation",
+        "gradient conflict",
+        "gradient alignment",
+        "gradient projection",
+        "gradient geometry",
+        "knowledge retention"
+      ],
+      "arxiv_categories": [
+        "cs.CL",
+        "cs.LG",
+        "cs.AI"
+      ],
+      "required_keywords": [
+        "large language model",
+        "language model",
+        "LLM",
+        "LLMs",
+        "foundation model"
+      ]
+    },
+    {
+      "id": "llm_reasoning_training",
+      "name": "大模型思维链与推理训练",
+      "description": "关注大语言模型思维链学习、推理微调、过程监督和推理轨迹优化，重点跟踪训练过程和优化方法，而非泛化的推理应用。",
+      "keywords": [
+        "chain-of-thought",
+        "reasoning fine-tuning",
+        "reasoning training",
+        "process supervision",
+        "reasoning trajectories",
+        "gradient-guided reasoning",
+        "reasoning distillation",
+        "reasoning optimization"
+      ],
+      "arxiv_categories": [
+        "cs.CL",
+        "cs.LG",
+        "cs.AI"
+      ],
+      "required_keywords": [
+        "large language model",
+        "language model",
+        "LLM",
+        "LLMs",
+        "foundation model"
+      ]
+    },
+    {
+      "id": "llm_rlvr",
+      "name": "大模型可验证奖励强化学习",
+      "description": "关注大语言模型的可验证奖励强化学习、策略优化、对比策略优化和组相对策略优化，重点跟踪推理训练与奖励设计。",
+      "keywords": [
+        "reinforcement learning with verifiable rewards",
+        "verifiable rewards",
+        "RLVR",
+        "contrastive policy optimization",
+        "group relative policy optimization",
+        "GRPO",
+        "reasoning reinforcement learning",
+        "verifiable reward"
+      ],
+      "arxiv_categories": [
+        "cs.CL",
+        "cs.LG",
+        "cs.AI"
+      ],
+      "required_keywords": [
+        "large language model",
+        "language model",
+        "LLM",
+        "LLMs",
+        "foundation model"
+      ]
     }
   ]
 }

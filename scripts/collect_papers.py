@@ -18,7 +18,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -54,6 +54,7 @@ class Topic:
     description: str
     keywords: list[str]
     arxiv_categories: list[str]
+    required_keywords: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -128,6 +129,7 @@ def parse_topics(config: dict[str, Any]) -> list[Topic]:
                 description=item.get("description", ""),
                 keywords=[str(k) for k in item.get("keywords", [])],
                 arxiv_categories=[str(c) for c in item.get("arxiv_categories", [])],
+                required_keywords=[str(k) for k in item.get("required_keywords", [])],
             )
         )
     if not topics:
@@ -320,6 +322,14 @@ def load_issue_config(default_config: dict[str, Any]) -> dict[str, Any]:
 
 
 def arxiv_query_for_topic(topic: Topic) -> str:
+    query = _arxiv_query_for_topic(topic)
+    if topic.required_keywords:
+        required = ['all:"' + term.replace('"', '\\"') + '"' for term in topic.required_keywords]
+        return "(" + query + ") AND (" + " OR ".join(required) + ")"
+    return query
+
+
+def _arxiv_query_for_topic(topic: Topic) -> str:
     keyword_terms = []
     for keyword in topic.keywords[:8]:
         escaped = keyword.replace('"', '\\"')
@@ -367,7 +377,10 @@ def topic_text_query(topic: Topic, limit: int = 6) -> str:
 
 
 def topic_plain_query(topic: Topic, limit: int = 6) -> str:
-    return " ".join(topic.keywords[:limit]) or topic.name
+    query = " ".join(topic.keywords[:limit]) or topic.name
+    if topic.required_keywords:
+        query = topic.required_keywords[0] + " " + query
+    return query
 
 
 def html_to_text(value: str) -> str:
@@ -1500,6 +1513,18 @@ def match_level(score: float) -> str:
 
 
 def score_paper(topic: Topic, paper: dict[str, Any]) -> dict[str, Any]:
+    # Model context AND a topic term: avoid generic gradients/RL entering LLM feeds.
+    if topic.required_keywords:
+        haystack = f"{paper.get('title', '')} {paper.get('summary', '')}".lower()
+        def contains_term(term: str) -> bool:
+            return re.search(r"(?<!\w)" + re.escape(term.lower()) + r"s?(?!\w)", haystack) is not None
+        if not any(contains_term(term) for term in topic.required_keywords) or not any(
+            contains_term(term) for term in topic.keywords
+        ):
+            return {
+                "topic_id": topic.id, "topic_name": topic.name, "score": 0.0,
+                "level": "low", "reason": "未同时命中模型语境与专题关键词。", "keyword_hits": [],
+            }
     k_score, hits = keyword_score(topic, paper)
     c_score = category_score(topic, paper)
     l_score = lexical_overlap_score(topic, paper)
