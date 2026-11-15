@@ -81,6 +81,41 @@ class OfficialConferenceTests(unittest.TestCase):
         self.assertEqual(result, [])
         self.assertTrue(stats['missing'])
 
+    def test_miccai_main_listing_excludes_satellite_wrong_year_and_host(self):
+        def entry(prefix='https://papers.miccai.org/miccai-2025/', year=2025):
+            return f'''<div class="posts-list-item"><b>Medical image segmentation</b><a href="/miccai-2025/tags#Alice">Alice</a><a href="{prefix}0001-Paper0308.html">Paper Information and Reviews</a><a href="{prefix}paper/0308_paper.pdf">PDF</a><pre>year = {{{year}}}</pre></div>'''
+        text = (entry() + entry('https://papers.miccai.org/miccai-2025-satellite/')
+                + entry('https://papers.miccai.org/miccai-2024/', 2024)
+                + entry('https://example.com/miccai-2025/') + entry(year=2024))
+        papers, scanned = c.parse_miccai(text, self.source('miccai', 'miccai'), 2025, [])
+        self.assertEqual(scanned, 1)
+        self.assertEqual(len(papers), 1)
+        self.assertEqual(papers[0]['authors'], ['Alice'])
+        self.assertEqual(papers[0]['conference']['status'], 'accepted')
+        self.assertTrue(papers[0]['pdf_url'].endswith('/paper/0308_paper.pdf'))
+
+    def test_miccai_abstract_does_not_include_reviews(self):
+        p = c.paper(self.source('miccai', 'miccai'), 2025, '1', 'Title', 'https://papers.miccai.org/miccai-2025/0001-Paper0308.html')
+        detail = '<meta name="description" content="Abstract plus private opinions"><h1 id="abstract-id">Abstract</h1><p>Only the abstract.</p><h1 id="reviews-id">Reviews</h1><p>Reviewer opinion.</p>'
+        with patch.object(c.Budget, 'get', return_value=detail):
+            c.enrich_details([p], c.Budget())
+        self.assertEqual(p['summary'], 'Only the abstract.')
+        self.assertEqual(p['abstract_source'], 'MICCAI')
+
+    def test_miccai_request_budget_and_title_filter_stats(self):
+        listing = ''.join(f'<div class="posts-list-item"><b>Segmentation {i}</b><a href="/miccai-2026/{i:04d}-Paper{i}.html">Paper Information and Reviews</a><pre>year = {{2026}}</pre></div>' for i in range(1, 11))
+        def get(budget, url, cache_index=False):
+            budget.requests += 1
+            budget.stats['requests'] = budget.requests
+            return listing if url.endswith('/miccai-2026/') else '<h1 id="abstract-id">Abstract</h1><p>Good abstract.</p><h1>Reviews</h1>'
+        with patch.object(c.Budget, 'get', get):
+            papers, stats = c.fetch_official_conference(self.source('miccai', 'miccai'), 2026, [], 10)
+        self.assertEqual(stats['requests'], 8)
+        self.assertEqual(stats['scanned'], 10)
+        self.assertTrue(stats['title_only_filter'])
+        self.assertEqual(sum(bool(p['summary']) for p in papers), 7)
+
+
 
 if __name__ == '__main__':
     unittest.main()

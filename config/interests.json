@@ -81,10 +81,8 @@
         "id": "miccai",
         "name": "MICCAI",
         "group": "medical imaging and computer-assisted intervention",
-        "provider": "dblp",
-        "options": {
-          "stream": "conf/miccai"
-        }
+        "provider": "miccai",
+        "options": {}
       },
       {
         "id": "midl",

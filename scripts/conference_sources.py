@@ -113,7 +113,7 @@ def paper(source: Any, year: int, key: str, title: str, url: str,
         "conference": {"id": attr(source, "id"), "name": venue_name,
                        "group": attr(source, "group", "conference"), "year": year,
                        "provider": provider, "track": track,
-                       "status": "accepted" if provider == "openreview" else "published",
+                       "status": "accepted" if provider in {"openreview", "miccai"} else "published",
                        "evidence_url": url, "date_precision": "year"},
     }
     if abstract:
@@ -213,6 +213,38 @@ def parse_cvf(text: str, source: Any, year: int, topics: list[Any]) -> tuple[lis
     return results, scanned
 
 
+def parse_miccai(text: str, source: Any, year: int, topics: list[Any]) -> tuple[list[dict], int]:
+    """Parse the Society's main-conference OA listing, never satellite events."""
+    results, scanned = [], 0
+    base = f"https://papers.miccai.org/miccai-{year}/"
+    for chunk in re.split(r'<div\s+class=["\']posts-list-item["\'][^>]*>', text)[1:]:
+        title_match = re.search(r"<b>(.*?)</b>", chunk, re.S)
+        if not title_match:
+            continue
+        links = Tags(chunk).links
+        href = next((link for link, label in links if label == "Paper Information and Reviews"), "")
+        url = urllib.parse.urljoin(base, href)
+        # Only the main annual collection's paper-detail files are evidence.
+        parsed = urllib.parse.urlparse(url)
+        if parsed.netloc != "papers.miccai.org" or not re.fullmatch(
+                rf"/miccai-{year}/[0-9]+-Paper[0-9]+\.html", parsed.path):
+            continue
+        if not re.search(r"year\s*=\s*\{\s*" + str(year) + r"\s*\}", chunk):
+            continue
+        scanned += 1
+        title = clean(title_match.group(1))
+        if not relevant(title, "", topics):
+            continue
+        authors = [label for link, label in links if link.startswith(f"/miccai-{year}/tags#")]
+        pdf = next((link for link, label in links if label == "PDF"), "")
+        pdf = urllib.parse.urljoin(base, pdf)
+        if not pdf.startswith(base + "paper/"):
+            pdf = ""
+        results.append(paper(source, year, parsed.path.strip("/"), title, url,
+                             authors=authors, pdf=pdf))
+    return results, scanned
+
+
 def enrich_details(results: list[dict], budget: Budget) -> None:
     # At most six or seven relevant papers, never every paper in a volume.
     for result in results:
@@ -224,6 +256,9 @@ def enrich_details(results: list[dict], budget: Budget) -> None:
             budget.stats["detail_failures"] += 1
             continue
         abstract = re.search(r'<(?:div|p)\b[^>]*id=["\']abstract["\'][^>]*>(.*?)</(?:div|p)>', text, re.S)
+        if result["conference"]["provider"] == "miccai":
+            # Do not use description metadata: it also contains peer reviews.
+            abstract = re.search(r'<h[1-6]\b[^>]*id=["\']abstract-id["\'][^>]*>.*?</h[1-6]>(.*?)(?=<h[1-6]\b|$)', text, re.S)
         if abstract:
             summary = clean(abstract.group(1))
             if summary:
@@ -265,7 +300,8 @@ def fetch_official_conference(source: Any, year: int, topics: list[Any], max_res
 
     source: object/mapping with id/name/group/provider/options. options keys:
     acl event/include_findings; pmlr series; cvf conference; openreview venue_id
-    (template e.g. ICLR.cc/{year}/Conference). Only current API-v2 venues supported.
+    (template e.g. ICLR.cc/{year}/Conference); miccai requires no options.
+    Only current API-v2 OpenReview venues supported.
     """
     provider, options = attr(source, "provider"), attr(source, "options", {})
     budget = Budget()
@@ -291,6 +327,11 @@ def fetch_official_conference(source: Any, year: int, topics: list[Any], max_res
             conference = options.get("conference", attr(source, "id")).upper()
             url = f"https://openaccess.thecvf.com/{conference}{year}?day=all"
             results, budget.stats["scanned"] = parse_cvf(budget.get(url), source, year, topics)
+            budget.stats["title_only_filter"] = True
+            enrich_details(results[:limit], budget)
+        elif provider == "miccai":
+            url = f"https://papers.miccai.org/miccai-{year}/"
+            results, budget.stats["scanned"] = parse_miccai(budget.get(url), source, year, topics)
             budget.stats["title_only_filter"] = True
             enrich_details(results[:limit], budget)
         elif provider == "openreview":

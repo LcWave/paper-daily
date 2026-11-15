@@ -134,7 +134,7 @@ GitHub Actions 运行后不会再把 `web/data/*.json` commit 回 `main` 分支�
 | 大模型 / NLP | ACL、EMNLP、NAACL、EACL | ACL Anthology 官方论文集，主会与 Findings 明确区分 |
 | 通用机器学习 | ICLR、NeurIPS；ICML、AISTATS、UAI | OpenReview 精确录用 venueid；PMLR 官方论文集 |
 | 视觉 | CVPR、ICCV、WACV；ECCV、BMVC、ACM MM | CVF 官方论文集；DBLP 出版题录 |
-| 医学影像 / 健康 | MICCAI、ISBI、IPMI、MIDL、CHIL、ML4H、EMBC、BHI、Computing in Cardiology | PMLR（MIDL/CHIL/ML4H）及 DBLP |
+| 医学影像 / 健康 | MICCAI、ISBI、IPMI、MIDL、CHIL、ML4H、EMBC、BHI、Computing in Cardiology | MICCAI Society 官方主会论文、PMLR（MIDL/CHIL/ML4H）及 DBLP |
 | 时序 / 异常 / 数据挖掘 | KDD、ICDM、CIKM、SDM、WWW、SIGIR、ICASSP、IJCNN，以及上述 ML 会议 | DBLP 及官方 ML 论文集 |
 | 综合 AI | AAAI、IJCAI | DBLP |
 
@@ -144,11 +144,11 @@ GitHub Actions 运行后不会再把 `web/data/*.json` commit 回 `main` 分支�
 
 **刷新与成本：** 每次最多抓取 12 个“会议 × 年份”，每个最多 8 个公开 HTTP 请求。其余会在后续每日运行继续；这是分批精选库，不是一次穷尽全部论文。扫描状态独立于最终精选论文保存，不再因为已有一篇论文就永久跳过该年。修改研究方向或来源会使扫描缓存失效；本年/未发布结果 7 天重查，旧年份 30 天重查，错误 1 天后重试。HTTP 202 验证页、异常 HTML、接口错误明确记为失败，并保留有效缓存。`conference_fetch_state`、`source_stats` 和 `deferred_conference_years` 可检查覆盖、排队、截断与错误。
 
-ACL 和 OpenReview 可直接匹配摘要。PMLR、CVF、DBLP 先按标题粗筛，PMLR/CVF 每轮只补少量官方摘要，因此可能漏掉标题没有研究关键词的论文；API 分页达到预算时会标记 `truncated`。DBLP 和 OpenReview 可能受访问限制，配置了某会议不等于当次成功抓到。对筛选后仍缺摘要的论文，保留现有按标题查询 arXiv、OpenAlex、Crossref 的有界回填流程，没有摘要不会让模型猜创新点。
+ACL 和 OpenReview 可直接匹配摘要。PMLR、CVF、MICCAI、DBLP 先按标题粗筛，PMLR/CVF/MICCAI 每轮只补少量官方摘要，因此可能漏掉标题没有研究关键词的论文；API 分页达到预算时会标记 `truncated`。DBLP 和 OpenReview 可能受访问限制，配置了某会议不等于当次成功抓到。对筛选后仍缺摘要的论文，保留现有按标题查询 arXiv、OpenAlex、Crossref 的有界回填流程，没有摘要不会让模型猜创新点。
 
 每日集合与顶会集合独立保存。顶会每轮最多新增 50 篇、最多保留 300 篇，并按研究专题轮转分配名额，避免某个大领域挤掉其他领域；同标题同年份的官方/DBLP记录去重。已有中文摘要复用，全局 `MAX_SUMMARIES` 默认仍为 20，不扩大模型调用额度。
 
-来源文档：[ACL Anthology](https://aclanthology.org/info/development/)、[OpenReview 录用论文检索](https://docs.openreview.net/how-to-guides/data-retrieval-and-modification/how-to-get-all-notes-for-submissions-reviews-rebuttals-etc)、[PMLR](https://proceedings.mlr.press/)、[CVF](https://openaccess.thecvf.com/)、[DBLP API](https://dblp.org/faq/How%2Bto%2Buse%2Bthe%2Bdblp%2Bsearch%2BAPI.html)。
+来源文档：[ACL Anthology](https://aclanthology.org/info/development/)、[OpenReview 录用论文检索](https://docs.openreview.net/how-to-guides/data-retrieval-and-modification/how-to-get-all-notes-for-submissions-reviews-rebuttals-etc)、[PMLR](https://proceedings.mlr.press/)、[CVF](https://openaccess.thecvf.com/)、[MICCAI Society](https://miccai.org/publications/miccai-open-access-reviews/)、[DBLP API](https://dblp.org/faq/How%2Bto%2Buse%2Bthe%2Bdblp%2Bsearch%2BAPI.html)。
 
 如果你想在 Issue 里继续追加自己的会议，可以在 JSON 里加 `conference_sources.additional_venues`，默认会议不会被覆盖：
 
